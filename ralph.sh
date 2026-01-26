@@ -1,6 +1,6 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop
-# Usage: ./ralph.sh [--tool amp|claude] [max_iterations]
+# Usage: ./ralph.sh [--tool amp|claude|codex|opencode] [max_iterations]
 
 set -e
 
@@ -29,8 +29,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate tool choice
-if [[ "$TOOL" != "amp" && "$TOOL" != "claude" ]]; then
-  echo "Error: Invalid tool '$TOOL'. Must be 'amp' or 'claude'."
+if [[ "$TOOL" != "amp" && "$TOOL" != "claude" && "$TOOL" != "codex" && "$TOOL" != "opencode" ]]; then
+  echo "Error: Invalid tool '$TOOL'. Must be 'amp', 'claude', 'codex', or 'opencode'."
   exit 1
 fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -88,12 +88,23 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   echo "==============================================================="
 
   # Run the selected tool with the ralph prompt
-  if [[ "$TOOL" == "amp" ]]; then
-    OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
-  else
-    # Claude Code: use --dangerously-skip-permissions for autonomous operation, --print for output
-    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
-  fi
+  case "$TOOL" in
+    amp)
+      OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
+      ;;
+    claude)
+      # Claude Code: use --dangerously-skip-permissions for autonomous operation, --print for output
+      OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+      ;;
+    codex)
+      # Codex CLI: use exec for non-interactive runs, allow full auto and write access
+      OUTPUT=$(codex exec --full-auto --sandbox danger-full-access "$(cat "$SCRIPT_DIR/CODEX.md")" 2>&1 | tee /dev/stderr) || true
+      ;;
+    opencode)
+      # OpenCode CLI: non-interactive prompt mode, hide spinner output
+      OUTPUT=$(opencode -p "$(cat "$SCRIPT_DIR/OPENCODE.md")" -q 2>&1 | tee /dev/stderr) || true
+      ;;
+  esac
   
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then

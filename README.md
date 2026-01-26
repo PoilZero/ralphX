@@ -2,7 +2,7 @@
 
 ![Ralph](ralph.webp)
 
-Ralph is an autonomous AI agent loop that runs AI coding tools ([Amp](https://ampcode.com) or [Claude Code](https://docs.anthropic.com/en/docs/claude-code)) repeatedly until all PRD items are complete. Each iteration is a fresh instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
+Ralph is an autonomous AI agent loop that runs AI coding tools ([Amp](https://ampcode.com), [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Codex CLI](https://github.com/openai/codex), or [OpenCode CLI](https://github.com/opencode-ai/opencode)) repeatedly until all PRD items are complete. Each iteration is a fresh instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
 
 Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
@@ -13,6 +13,8 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 - One of the following AI coding tools installed and authenticated:
   - [Amp CLI](https://ampcode.com) (default)
   - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`)
+  - [Codex CLI](https://github.com/openai/codex) (`npm install -g @openai/codex` or `brew install --cask codex`)
+  - [OpenCode CLI](https://github.com/opencode-ai/opencode) (`brew install opencode-ai/tap/opencode`)
 - `jq` installed (`brew install jq` on macOS)
 - A git repository for your project
 
@@ -28,16 +30,17 @@ mkdir -p scripts/ralph
 cp /path/to/ralph/ralph.sh scripts/ralph/
 
 # Copy the prompt template for your AI tool of choice:
-cp /path/to/ralph/prompt.md scripts/ralph/prompt.md    # For Amp
-# OR
-cp /path/to/ralph/CLAUDE.md scripts/ralph/CLAUDE.md    # For Claude Code
+cp /path/to/ralph/prompt.md scripts/ralph/prompt.md      # For Amp
+cp /path/to/ralph/CLAUDE.md scripts/ralph/CLAUDE.md      # For Claude Code
+cp /path/to/ralph/CODEX.md scripts/ralph/CODEX.md        # For Codex CLI
+cp /path/to/ralph/OPENCODE.md scripts/ralph/OPENCODE.md  # For OpenCode CLI
 
 chmod +x scripts/ralph/ralph.sh
 ```
 
 ### Option 2: Install skills globally
 
-Copy the skills to your Amp or Claude config for use across all projects:
+Copy the skills to your Amp, Claude, or Codex config for use across all projects:
 
 For AMP
 ```bash
@@ -50,6 +53,13 @@ For Claude Code
 cp -r skills/prd ~/.claude/skills/
 cp -r skills/ralph ~/.claude/skills/
 ```
+
+For Codex CLI
+```bash
+cp -r skills/prd "$CODEX_HOME/skills/"
+cp -r skills/ralph "$CODEX_HOME/skills/"
+```
+If `$CODEX_HOME` is not set, use your Codex config directory (often `~/.codex`).
 
 ### Configure Amp auto-handoff (recommended)
 
@@ -93,9 +103,15 @@ This creates `prd.json` with user stories structured for autonomous execution.
 
 # Using Claude Code
 ./scripts/ralph/ralph.sh --tool claude [max_iterations]
+
+# Using Codex CLI
+./scripts/ralph/ralph.sh --tool codex [max_iterations]
+
+# Using OpenCode CLI
+./scripts/ralph/ralph.sh --tool opencode [max_iterations]
 ```
 
-Default is 10 iterations. Use `--tool amp` or `--tool claude` to select your AI coding tool.
+Default is 10 iterations. Use `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode` to select your AI coding tool.
 
 Ralph will:
 1. Create a feature branch (from PRD `branchName`)
@@ -111,9 +127,11 @@ Ralph will:
 
 | File | Purpose |
 |------|---------|
-| `ralph.sh` | The bash loop that spawns fresh AI instances (supports `--tool amp` or `--tool claude`) |
+| `ralph.sh` | The bash loop that spawns fresh AI instances (supports `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode`) |
 | `prompt.md` | Prompt template for Amp |
 | `CLAUDE.md` | Prompt template for Claude Code |
+| `CODEX.md` | Prompt template for Codex CLI |
+| `OPENCODE.md` | Prompt template for OpenCode CLI |
 | `prd.json` | User stories with `passes` status (the task list) |
 | `prd.json.example` | Example PRD format for reference |
 | `progress.txt` | Append-only learnings for future iterations |
@@ -139,7 +157,7 @@ npm run dev
 
 ### Each Iteration = Fresh Context
 
-Each iteration spawns a **new AI instance** (Amp or Claude Code) with clean context. The only memory between iterations is:
+Each iteration spawns a **new AI instance** (Amp, Claude Code, Codex CLI, or OpenCode CLI) with clean context. The only memory between iterations is:
 - Git history (commits from previous iterations)
 - `progress.txt` (learnings and context)
 - `prd.json` (which stories are done)
@@ -200,7 +218,7 @@ git log --oneline -10
 
 ## Customizing the Prompt
 
-After copying `prompt.md` (for Amp) or `CLAUDE.md` (for Claude Code) to your project, customize it for your project:
+After copying `prompt.md` (for Amp), `CLAUDE.md` (for Claude Code), `CODEX.md` (for Codex CLI), or `OPENCODE.md` (for OpenCode CLI) to your project, customize it for your project:
 - Add project-specific quality check commands
 - Include codebase conventions
 - Add common gotchas for your stack
@@ -214,3 +232,5 @@ Ralph automatically archives previous runs when you start a new feature (differe
 - [Geoffrey Huntley's Ralph article](https://ghuntley.com/ralph/)
 - [Amp documentation](https://ampcode.com/manual)
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)
+- [Codex CLI documentation](https://developers.openai.com/codex/cli)
+- [OpenCode CLI documentation](https://github.com/opencode-ai/opencode)
