@@ -20,9 +20,20 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
   - [Codex CLI](https://github.com/openai/codex) (`npm install -g @openai/codex` or `brew install --cask codex`)
   - [OpenCode CLI](https://github.com/opencode-ai/opencode) (`brew install opencode-ai/tap/opencode` or `curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash`)
 - `jq` installed (`brew install jq` on macOS)
+- Node.js + npm (only needed if installing the `ralphx` CLI via npm)
 - A git repository for your project
 
 ## Setup
+
+### Option 0: Install ralphx via npm (recommended)
+
+```bash
+npm install -g @poilzero/ralphx
+# Or install directly from GitHub
+npm install -g git+https://github.com/PoilZero/ralphX.git
+```
+
+This installs the `ralphx` command globally.
 
 ### Option 1: Copy to your project
 
@@ -103,6 +114,19 @@ This creates `prd.json` with user stories structured for autonomous execution.
 ### 3. Run Ralph
 
 ```bash
+# Using ralphx (recommended, reads ./prd.json)
+ralphx --tool codex [max_iterations]
+
+# Using ralphx with an explicit PRD path
+ralphx --prd /path/to/prd.json --tool codex [max_iterations]
+
+# Using ralphx in prompt mode (no PRD)
+ralphx "your task" --tool codex [max_iterations]
+```
+
+Or run via the script directly:
+
+```bash
 # Using Amp (default)
 ./scripts/ralph/ralph.sh [max_iterations]
 
@@ -115,6 +139,8 @@ This creates `prd.json` with user stories structured for autonomous execution.
 # Using OpenCode CLI
 ./scripts/ralph/ralph.sh --tool opencode [max_iterations]
 ```
+
+By default, `ralphx` reads `./prd.json`. If it is missing, provide `--prd` or use prompt mode (`ralphx "your task"`).
 
 Default is 10 iterations. Use `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode` to select your AI coding tool.
 
@@ -133,6 +159,7 @@ Ralph will:
 | File | Purpose |
 |------|---------|
 | `ralph.sh` | The bash loop that spawns fresh AI instances (supports `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode`) |
+| `bin/ralphx` | CLI entrypoint for npm installs (runs `ralph.sh`) |
 | `prompt.md` | Prompt template for Amp |
 | `CLAUDE.md` | Prompt template for Claude Code |
 | `CODEX.md` | Prompt template for Codex CLI |
@@ -222,9 +249,20 @@ Ralph 是一个自治的 AI 代理循环，会反复运行 AI 编码工具（[Am
   - [Codex CLI](https://github.com/openai/codex)（`npm install -g @openai/codex` 或 `brew install --cask codex`）
   - [OpenCode CLI](https://github.com/opencode-ai/opencode)（`brew install opencode-ai/tap/opencode` 或 `curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash`）
 - 已安装 `jq`（macOS 可用 `brew install jq`）
+- Node.js + npm（仅在通过 npm 安装 `ralphx` 时需要）
 - 你的项目是一个 git 仓库
 
 ## 安装
+
+### 选项 0：通过 npm 安装 ralphx（推荐）
+
+```bash
+npm install -g @poilzero/ralphx
+# 或直接从 GitHub 安装
+npm install -g git+https://github.com/PoilZero/ralphX.git
+```
+
+这会在全局安装 `ralphx` 命令。
 
 ### 选项 1：拷贝到你的项目
 
@@ -305,6 +343,19 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 ### 3. 运行 Ralph
 
 ```bash
+# 使用 ralphx（推荐，读取当前目录 ./prd.json）
+ralphx --tool codex [max_iterations]
+
+# 使用 ralphx 并显式指定 PRD 路径
+ralphx --prd /path/to/prd.json --tool codex [max_iterations]
+
+# 使用 ralphx 的 prompt 模式（无 PRD）
+ralphx "你的需求描述" --tool codex [max_iterations]
+```
+
+或直接通过脚本运行：
+
+```bash
 # 使用 Amp（默认）
 ./scripts/ralph/ralph.sh [max_iterations]
 
@@ -317,6 +368,8 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 # 使用 OpenCode CLI
 ./scripts/ralph/ralph.sh --tool opencode [max_iterations]
 ```
+
+默认情况下，`ralphx` 会读取当前目录的 `./prd.json`。如果不存在，请使用 `--prd` 或 prompt 模式（`ralphx "你的需求描述"`）。
 
 默认迭代次数为 10。使用 `--tool amp`、`--tool claude`、`--tool codex` 或 `--tool opencode` 来选择 AI 编码工具。
 
@@ -335,6 +388,7 @@ Ralph 将执行：
 | 文件 | 用途 |
 |------|------|
 | `ralph.sh` | 负责启动全新 AI 实例的 bash 循环（支持 `--tool amp`、`--tool claude`、`--tool codex`、或 `--tool opencode`） |
+| `bin/ralphx` | npm 安装的 CLI 入口（运行 `ralph.sh`） |
 | `prompt.md` | Amp 的提示模板 |
 | `CLAUDE.md` | Claude Code 的提示模板 |
 | `CODEX.md` | Codex CLI 的提示模板 |

@@ -1,0 +1,27 @@
+{
+  "name": "@poilzero/ralphx",
+  "version": "0.1.0",
+  "description": "Ralph autonomous agent loop runner",
+  "license": "MIT",
+  "bin": {
+    "ralphx": "bin/ralphx"
+  },
+  "files": [
+    "bin/ralphx",
+    "ralph.sh",
+    "prompt.md",
+    "CLAUDE.md",
+    "CODEX.md",
+    "OPENCODE.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PoilZero/ralphX.git"
+  },
+  "homepage": "https://github.com/PoilZero/ralphX",
+  "bugs": {
+    "url": "https://github.com/PoilZero/ralphX/issues"
+  }
+}

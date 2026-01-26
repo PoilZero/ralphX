@@ -1,12 +1,29 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop
-# Usage: ./ralph.sh [--tool amp|claude|codex|opencode] [max_iterations]
+# Usage: ./ralph.sh [--tool amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
 
 set -e
+
+show_usage() {
+  cat <<'EOF'
+Usage:
+  ralph.sh [--tool amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
+
+Notes:
+  - If --prd is not provided, ralph.sh reads ./prd.json in the current directory.
+  - If no prd.json is found, provide --prd or run: ralphx "your task"
+EOF
+}
+
+escape_sed() {
+  printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
+}
 
 # Parse arguments
 TOOL="amp"  # Default to amp for backwards compatibility
 MAX_ITERATIONS=10
+PRD_PATH=""
+USER_PROMPT=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -18,15 +35,54 @@ while [[ $# -gt 0 ]]; do
       TOOL="${1#*=}"
       shift
       ;;
+    --prd)
+      if [ -z "${2:-}" ]; then
+        echo "Error: --prd requires a path."
+        exit 1
+      fi
+      PRD_PATH="$2"
+      shift 2
+      ;;
+    --prd=*)
+      PRD_PATH="${1#*=}"
+      shift
+      ;;
+    --prompt)
+      if [ -z "${2:-}" ]; then
+        echo "Error: --prompt requires text."
+        exit 1
+      fi
+      USER_PROMPT="$2"
+      shift 2
+      ;;
+    --prompt=*)
+      USER_PROMPT="${1#*=}"
+      shift
+      ;;
+    -h|--help)
+      show_usage
+      exit 0
+      ;;
     *)
       # Assume it's max_iterations if it's a number
       if [[ "$1" =~ ^[0-9]+$ ]]; then
         MAX_ITERATIONS="$1"
+      else
+        if [ -z "$USER_PROMPT" ]; then
+          USER_PROMPT="$1"
+        else
+          USER_PROMPT="$USER_PROMPT $1"
+        fi
       fi
       shift
       ;;
   esac
 done
+
+if [ -n "$PRD_PATH" ] && [ -n "$USER_PROMPT" ]; then
+  echo "Error: --prd and --prompt cannot be used together."
+  exit 1
+fi
 
 # Validate tool choice
 if [[ "$TOOL" != "amp" && "$TOOL" != "claude" && "$TOOL" != "codex" && "$TOOL" != "opencode" ]]; then
@@ -34,10 +90,71 @@ if [[ "$TOOL" != "amp" && "$TOOL" != "claude" && "$TOOL" != "codex" && "$TOOL" !
   exit 1
 fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PRD_FILE="$SCRIPT_DIR/prd.json"
-PROGRESS_FILE="$SCRIPT_DIR/progress.txt"
-ARCHIVE_DIR="$SCRIPT_DIR/archive"
-LAST_BRANCH_FILE="$SCRIPT_DIR/.last-branch"
+WORK_DIR=""
+
+if [ -n "$USER_PROMPT" ]; then
+  WORK_DIR="${PWD}/.ralphx"
+  mkdir -p "$WORK_DIR"
+  WORK_DIR="$(cd "$WORK_DIR" && pwd)"
+  PRD_FILE="$WORK_DIR/prd.json"
+else
+  if [ -n "$PRD_PATH" ]; then
+    PRD_FILE="$PRD_PATH"
+  else
+    PRD_FILE="${PWD}/prd.json"
+  fi
+
+  if [ ! -f "$PRD_FILE" ]; then
+    echo "Error: prd.json not found at $PRD_FILE."
+    echo "Provide --prd /path/to/prd.json or run: ralphx \"your task\""
+    exit 1
+  fi
+
+  WORK_DIR="$(cd "$(dirname "$PRD_FILE")" && pwd)"
+  PRD_FILE="$WORK_DIR/$(basename "$PRD_FILE")"
+fi
+
+PROGRESS_FILE="$WORK_DIR/progress.txt"
+ARCHIVE_DIR="$WORK_DIR/archive"
+LAST_BRANCH_FILE="$WORK_DIR/.last-branch"
+
+if [ -n "$USER_PROMPT" ]; then
+  PROMPT_TITLE=$(printf '%s' "$USER_PROMPT" | tr '\n' ' ' | cut -c1-60)
+  jq -n --arg prompt "$USER_PROMPT" --arg title "$PROMPT_TITLE" '{
+    project: "RalphPrompt",
+    branchName: "main",
+    description: "Prompt mode run",
+    userStories: [
+      {
+        id: "PROMPT-001",
+        title: $title,
+        description: $prompt,
+        acceptanceCriteria: [
+          "Implement the requested change",
+          "Typecheck passes"
+        ],
+        priority: 1,
+        passes: false,
+        notes: ""
+      }
+    ]
+  }' > "$PRD_FILE"
+
+  echo "# Ralph Progress Log" > "$PROGRESS_FILE"
+  echo "Started: $(date)" >> "$PROGRESS_FILE"
+  echo "---" >> "$PROGRESS_FILE"
+fi
+
+PRD_ESC=$(escape_sed "$PRD_FILE")
+PROGRESS_ESC=$(escape_sed "$PROGRESS_FILE")
+
+render_prompt() {
+  local template="$1"
+  sed -e "s/prd.json/$PRD_ESC/g" \
+      -e "s/progress.txt/$PROGRESS_ESC/g" \
+      -e "s/ (in the same directory as this file)//g" \
+      "$template"
+}
 
 # Archive previous run if branch changed
 if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
@@ -90,19 +207,23 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   # Run the selected tool with the ralph prompt
   case "$TOOL" in
     amp)
-      OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
+      AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/prompt.md")
+      OUTPUT=$(printf '%s' "$AGENT_PROMPT" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
       ;;
     claude)
       # Claude Code: use --dangerously-skip-permissions for autonomous operation, --print for output
-      OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+      AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/CLAUDE.md")
+      OUTPUT=$(printf '%s' "$AGENT_PROMPT" | claude --dangerously-skip-permissions --print 2>&1 | tee /dev/stderr) || true
       ;;
     codex)
       # Codex CLI: use exec for non-interactive runs, allow full auto and write access
-      OUTPUT=$(codex exec --full-auto --sandbox danger-full-access "$(cat "$SCRIPT_DIR/CODEX.md")" 2>&1 | tee /dev/stderr) || true
+      AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/CODEX.md")
+      OUTPUT=$(codex exec --full-auto --sandbox danger-full-access "$AGENT_PROMPT" 2>&1 | tee /dev/stderr) || true
       ;;
     opencode)
       # OpenCode CLI: non-interactive prompt mode, hide spinner output
-      OUTPUT=$(opencode -p "$(cat "$SCRIPT_DIR/OPENCODE.md")" -q 2>&1 | tee /dev/stderr) || true
+      AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/OPENCODE.md")
+      OUTPUT=$(opencode -p "$AGENT_PROMPT" -q 2>&1 | tee /dev/stderr) || true
       ;;
   esac
   
