@@ -12,6 +12,17 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
 [Read my in-depth article on how I use Ralph](https://x.com/ryancarson/status/2008548371712135632)
 
+## Quick Start (Prompt-first)
+
+```bash
+npm install -g @poilzero/ralphx
+# Or install directly from GitHub
+npm install -g git+https://github.com/PoilZero/ralphX.git
+ralphx "Add a search box to the homepage" --tool codex 3
+```
+
+No `prd.json` required. If you already have a PRD, run `ralphx --tool codex 10` in the directory that contains `prd.json`, or use `ralphx --prd /path/to/prd.json`.
+
 ## Prerequisites
 
 - One of the following AI coding tools installed and authenticated:
@@ -91,6 +102,14 @@ This enables automatic handoff when context fills up, allowing Ralph to handle l
 
 ## Workflow
 
+### 0. Prompt-first run (no PRD)
+
+```bash
+ralphx "your task" --tool codex [max_iterations]
+```
+
+This is the simplest path. Use the PRD flow below when you need multiple stories and structured tracking.
+
 ### 1. Create a PRD
 
 Use the PRD skill to generate a detailed requirements document:
@@ -111,7 +130,7 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 
 This creates `prd.json` with user stories structured for autonomous execution.
 
-### 3. Run Ralph
+### 3. Run Ralph (PRD mode)
 
 ```bash
 # Using ralphx (recommended, reads ./prd.json)
@@ -119,9 +138,6 @@ ralphx --tool codex [max_iterations]
 
 # Using ralphx with an explicit PRD path
 ralphx --prd /path/to/prd.json --tool codex [max_iterations]
-
-# Using ralphx in prompt mode (no PRD)
-ralphx "your task" --tool codex [max_iterations]
 ```
 
 Or run via the script directly:
@@ -241,6 +257,17 @@ Ralph 是一个自治的 AI 代理循环，会反复运行 AI 编码工具（[Am
 
 [阅读我关于如何使用 Ralph 的深度文章](https://x.com/ryancarson/status/2008548371712135632)
 
+## 快速开始（Prompt 优先）
+
+```bash
+npm install -g @poilzero/ralphx
+# 或直接从 GitHub 安装
+npm install -g git+https://github.com/PoilZero/ralphX.git
+ralphx "在首页加一个搜索框" --tool codex 3
+```
+
+无需 `prd.json`。如果你已经有 PRD，可在包含 `prd.json` 的目录执行 `ralphx --tool codex 10`，或使用 `ralphx --prd /path/to/prd.json`。
+
 ## 前置条件
 
 - 安装并完成认证的以下任一 AI 编码工具：
@@ -320,6 +347,14 @@ cp -r skills/ralph "$CODEX_HOME/skills/"
 
 ## 工作流程
 
+### 0. Prompt 优先运行（无需 PRD）
+
+```bash
+ralphx "你的需求描述" --tool codex [max_iterations]
+```
+
+这是最简单的用法。需要多故事与结构化追踪时再使用下方的 PRD 流程。
+
 ### 1. 创建 PRD
 
 使用 PRD 技能生成详细需求文档：
@@ -340,7 +375,7 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 
 这会生成 `prd.json`，其中包含用于自动执行的用户故事。
 
-### 3. 运行 Ralph
+### 3. 运行 Ralph（PRD 模式）
 
 ```bash
 # 使用 ralphx（推荐，读取当前目录 ./prd.json）
@@ -348,9 +383,6 @@ ralphx --tool codex [max_iterations]
 
 # 使用 ralphx 并显式指定 PRD 路径
 ralphx --prd /path/to/prd.json --tool codex [max_iterations]
-
-# 使用 ralphx 的 prompt 模式（无 PRD）
-ralphx "你的需求描述" --tool codex [max_iterations]
 ```
 
 或直接通过脚本运行：
