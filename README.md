@@ -14,7 +14,7 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
   - [Amp CLI](https://ampcode.com) (default)
   - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`)
   - [Codex CLI](https://github.com/openai/codex) (`npm install -g @openai/codex` or `brew install --cask codex`)
-  - [OpenCode CLI](https://github.com/opencode-ai/opencode) (`brew install opencode-ai/tap/opencode`)
+  - [OpenCode CLI](https://github.com/opencode-ai/opencode) (`brew install opencode-ai/tap/opencode` or `curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash`)
 - `jq` installed (`brew install jq` on macOS)
 - A git repository for your project
 
@@ -30,6 +30,7 @@ mkdir -p scripts/ralph
 cp /path/to/ralph/ralph.sh scripts/ralph/
 
 # Copy the prompt template for your AI tool of choice:
+# (Copy only the file(s) you plan to use.)
 cp /path/to/ralph/prompt.md scripts/ralph/prompt.md      # For Amp
 cp /path/to/ralph/CLAUDE.md scripts/ralph/CLAUDE.md      # For Claude Code
 cp /path/to/ralph/CODEX.md scripts/ralph/CODEX.md        # For Codex CLI
