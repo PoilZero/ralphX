@@ -16,12 +16,10 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
 ```bash
 npm install -g @poilzero/ralphx
-# Or install directly from GitHub
-npm install -g git+https://github.com/PoilZero/ralphX.git
 ralphx "Add a search box to the homepage" --tool codex 3
 ```
 
-No `prd.json` required. If you already have a PRD, run `ralphx --tool codex 10` in the directory that contains `prd.json`, or use `ralphx --prd /path/to/prd.json`.
+No `prd.json` required. Use PRD mode only when you need multiple stories and structured tracking.
 
 ## Prerequisites
 
@@ -112,23 +110,17 @@ This is the simplest path. Use the PRD flow below when you need multiple stories
 
 ### 1. Create a PRD
 
-Use the PRD skill to generate a detailed requirements document:
-
 ```
 Load the prd skill and create a PRD for [your feature description]
 ```
 
-Answer the clarifying questions. The skill saves output to `tasks/prd-[feature-name].md`.
+This saves `tasks/prd-[feature-name].md`.
 
 ### 2. Convert PRD to Ralph format
-
-Use the Ralph skill to convert the markdown PRD to JSON:
 
 ```
 Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 ```
-
-This creates `prd.json` with user stories structured for autonomous execution.
 
 ### 3. Run Ralph (PRD mode)
 
@@ -138,22 +130,6 @@ ralphx --tool codex [max_iterations]
 
 # Using ralphx with an explicit PRD path
 ralphx --prd /path/to/prd.json --tool codex [max_iterations]
-```
-
-Or run via the script directly:
-
-```bash
-# Using Amp (default)
-./scripts/ralph/ralph.sh [max_iterations]
-
-# Using Claude Code
-./scripts/ralph/ralph.sh --tool claude [max_iterations]
-
-# Using Codex CLI
-./scripts/ralph/ralph.sh --tool codex [max_iterations]
-
-# Using OpenCode CLI
-./scripts/ralph/ralph.sh --tool opencode [max_iterations]
 ```
 
 By default, `ralphx` reads `./prd.json`. If it is missing, provide `--prd` or use prompt mode (`ralphx "your task"`).
@@ -261,12 +237,10 @@ Ralph 是一个自治的 AI 代理循环，会反复运行 AI 编码工具（[Am
 
 ```bash
 npm install -g @poilzero/ralphx
-# 或直接从 GitHub 安装
-npm install -g git+https://github.com/PoilZero/ralphX.git
 ralphx "在首页加一个搜索框" --tool codex 3
 ```
 
-无需 `prd.json`。如果你已经有 PRD，可在包含 `prd.json` 的目录执行 `ralphx --tool codex 10`，或使用 `ralphx --prd /path/to/prd.json`。
+无需 `prd.json`。只有当你需要多故事与结构化追踪时再使用 PRD 模式。
 
 ## 前置条件
 
@@ -357,23 +331,17 @@ ralphx "你的需求描述" --tool codex [max_iterations]
 
 ### 1. 创建 PRD
 
-使用 PRD 技能生成详细需求文档：
-
 ```
 Load the prd skill and create a PRD for [your feature description]
 ```
 
-回答澄清问题。该技能会将输出保存到 `tasks/prd-[feature-name].md`。
+输出保存在 `tasks/prd-[feature-name].md`。
 
 ### 2. 将 PRD 转换为 Ralph 格式
-
-使用 Ralph 技能将 markdown PRD 转换为 JSON：
 
 ```
 Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 ```
-
-这会生成 `prd.json`，其中包含用于自动执行的用户故事。
 
 ### 3. 运行 Ralph（PRD 模式）
 
@@ -383,22 +351,6 @@ ralphx --tool codex [max_iterations]
 
 # 使用 ralphx 并显式指定 PRD 路径
 ralphx --prd /path/to/prd.json --tool codex [max_iterations]
-```
-
-或直接通过脚本运行：
-
-```bash
-# 使用 Amp（默认）
-./scripts/ralph/ralph.sh [max_iterations]
-
-# 使用 Claude Code
-./scripts/ralph/ralph.sh --tool claude [max_iterations]
-
-# 使用 Codex CLI
-./scripts/ralph/ralph.sh --tool codex [max_iterations]
-
-# 使用 OpenCode CLI
-./scripts/ralph/ralph.sh --tool opencode [max_iterations]
 ```
 
 默认情况下，`ralphx` 会读取当前目录的 `./prd.json`。如果不存在，请使用 `--prd` 或 prompt 模式（`ralphx "你的需求描述"`）。
