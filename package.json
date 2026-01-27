@@ -1,6 +1,6 @@
 {
   "name": "@poilzero/ralphx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ralph autonomous agent loop runner",
   "license": "MIT",
   "bin": {

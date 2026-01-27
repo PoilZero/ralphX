@@ -17,6 +17,8 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 ```bash
 npm install -g @poilzero/ralphx
 ralphx "Add a search box to the homepage" --tool codex 3
+# Or run once without install
+npx -y @poilzero/ralphx "Add a search box to the homepage" --tool codex 3
 ```
 
 No `prd.json` required. Use PRD mode only when you need multiple stories and structured tracking.
@@ -238,6 +240,8 @@ Ralph 是一个自治的 AI 代理循环，会反复运行 AI 编码工具（[Am
 ```bash
 npm install -g @poilzero/ralphx
 ralphx "在首页加一个搜索框" --tool codex 3
+# 或直接一次性运行（无需安装）
+npx -y @poilzero/ralphx "在首页加一个搜索框" --tool codex 3
 ```
 
 无需 `prd.json`。只有当你需要多故事与结构化追踪时再使用 PRD 模式。
