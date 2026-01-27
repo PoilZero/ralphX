@@ -16,12 +16,21 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
 ```bash
 npm install -g @poilzero/ralphx
-ralphx "Add a search box to the homepage" --tool codex 3
+ralphx "Add a search box to the homepage" --agent codex 3
 # Or run once without install
-npx -y @poilzero/ralphx "Add a search box to the homepage" --tool codex 3
+npx -y @poilzero/ralphx "Add a search box to the homepage" --agent codex 3
 ```
 
 No `prd.json` required. Use PRD mode only when you need multiple stories and structured tracking.
+
+Set a default agent with the uppercase environment variable and override it with `--agent`:
+
+```bash
+export RALPHX_AGENT=codex
+ralphx "Add a search box to the homepage" 3
+```
+
+`--tool` is deprecated and will error. Use `--agent`.
 
 ## Prerequisites
 
@@ -105,7 +114,7 @@ This enables automatic handoff when context fills up, allowing Ralph to handle l
 ### 0. Prompt-first run (no PRD)
 
 ```bash
-ralphx "your task" --tool codex [max_iterations]
+ralphx "your task" --agent codex [max_iterations]
 ```
 
 This is the simplest path. Use the PRD flow below when you need multiple stories and structured tracking.
@@ -128,15 +137,15 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 
 ```bash
 # Using ralphx (recommended, reads ./prd.json)
-ralphx --tool codex [max_iterations]
+ralphx --agent codex [max_iterations]
 
 # Using ralphx with an explicit PRD path
-ralphx --prd /path/to/prd.json --tool codex [max_iterations]
+ralphx --prd /path/to/prd.json --agent codex [max_iterations]
 ```
 
 By default, `ralphx` reads `./prd.json`. If it is missing, provide `--prd` or use prompt mode (`ralphx "your task"`).
 
-Default is 10 iterations. Use `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode` to select your AI coding tool.
+Default is 10 iterations. Use `--agent amp`, `--agent claude`, `--agent codex`, or `--agent opencode` to select your AI coding tool. You can also set `RALPHX_AGENT` (uppercase) to define the default agent.
 
 Ralph will:
 1. Create a feature branch (from PRD `branchName`)
@@ -152,7 +161,7 @@ Ralph will:
 
 | File | Purpose |
 |------|---------|
-| `ralph.sh` | The bash loop that spawns fresh AI instances (supports `--tool amp`, `--tool claude`, `--tool codex`, or `--tool opencode`) |
+| `ralph.sh` | The bash loop that spawns fresh AI instances (supports `--agent amp`, `--agent claude`, `--agent codex`, or `--agent opencode`) |
 | `bin/ralphx` | CLI entrypoint for npm installs (runs `ralph.sh`) |
 | `prompt.md` | Prompt template for Amp |
 | `CLAUDE.md` | Prompt template for Claude Code |
@@ -239,12 +248,21 @@ Ralph 是一个自治的 AI 代理循环，会反复运行 AI 编码工具（[Am
 
 ```bash
 npm install -g @poilzero/ralphx
-ralphx "在首页加一个搜索框" --tool codex 3
+ralphx "在首页加一个搜索框" --agent codex 3
 # 或直接一次性运行（无需安装）
-npx -y @poilzero/ralphx "在首页加一个搜索框" --tool codex 3
+npx -y @poilzero/ralphx "在首页加一个搜索框" --agent codex 3
 ```
 
 无需 `prd.json`。只有当你需要多故事与结构化追踪时再使用 PRD 模式。
+
+可通过大写环境变量设置默认代理，并用 `--agent` 覆盖：
+
+```bash
+export RALPHX_AGENT=codex
+ralphx "在首页加一个搜索框" 3
+```
+
+`--tool` 已废弃并会报错，请使用 `--agent`。
 
 ## 前置条件
 
@@ -328,7 +346,7 @@ cp -r skills/ralph "$CODEX_HOME/skills/"
 ### 0. Prompt 优先运行（无需 PRD）
 
 ```bash
-ralphx "你的需求描述" --tool codex [max_iterations]
+ralphx "你的需求描述" --agent codex [max_iterations]
 ```
 
 这是最简单的用法。需要多故事与结构化追踪时再使用下方的 PRD 流程。
@@ -351,15 +369,15 @@ Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
 
 ```bash
 # 使用 ralphx（推荐，读取当前目录 ./prd.json）
-ralphx --tool codex [max_iterations]
+ralphx --agent codex [max_iterations]
 
 # 使用 ralphx 并显式指定 PRD 路径
-ralphx --prd /path/to/prd.json --tool codex [max_iterations]
+ralphx --prd /path/to/prd.json --agent codex [max_iterations]
 ```
 
 默认情况下，`ralphx` 会读取当前目录的 `./prd.json`。如果不存在，请使用 `--prd` 或 prompt 模式（`ralphx "你的需求描述"`）。
 
-默认迭代次数为 10。使用 `--tool amp`、`--tool claude`、`--tool codex` 或 `--tool opencode` 来选择 AI 编码工具。
+默认迭代次数为 10。使用 `--agent amp`、`--agent claude`、`--agent codex` 或 `--agent opencode` 来选择 AI 编码工具。也可通过 `RALPHX_AGENT`（仅大写）设置默认代理。
 
 Ralph 将执行：
 1. 创建功能分支（来自 PRD 的 `branchName`）
@@ -375,7 +393,7 @@ Ralph 将执行：
 
 | 文件 | 用途 |
 |------|------|
-| `ralph.sh` | 负责启动全新 AI 实例的 bash 循环（支持 `--tool amp`、`--tool claude`、`--tool codex`、或 `--tool opencode`） |
+| `ralph.sh` | 负责启动全新 AI 实例的 bash 循环（支持 `--agent amp`、`--agent claude`、`--agent codex`、或 `--agent opencode`） |
 | `bin/ralphx` | npm 安装的 CLI 入口（运行 `ralph.sh`） |
 | `prompt.md` | Amp 的提示模板 |
 | `CLAUDE.md` | Claude Code 的提示模板 |

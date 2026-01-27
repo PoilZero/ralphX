@@ -1,17 +1,19 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop
-# Usage: ./ralph.sh [--tool amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
+# Usage: ./ralph.sh [--agent amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
 
 set -e
 
 show_usage() {
   cat <<'EOF'
 Usage:
-  ralph.sh [--tool amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
+  ralph.sh [--agent amp|claude|codex|opencode] [--prd /path/to/prd.json] [--prompt "task"] [max_iterations]
 
 Notes:
   - If --prd is not provided, ralph.sh reads ./prd.json in the current directory.
   - If no prd.json is found, provide --prd or run: ralphx "your task"
+  - Default agent can be set with the RALPHX_AGENT environment variable.
+  - --tool is deprecated and will error. Use --agent.
 EOF
 }
 
@@ -20,20 +22,24 @@ escape_sed() {
 }
 
 # Parse arguments
-TOOL="amp"  # Default to amp for backwards compatibility
+AGENT="${RALPHX_AGENT:-amp}"
 MAX_ITERATIONS=10
 PRD_PATH=""
 USER_PROMPT=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --tool)
-      TOOL="$2"
+    --agent)
+      AGENT="$2"
       shift 2
       ;;
-    --tool=*)
-      TOOL="${1#*=}"
+    --agent=*)
+      AGENT="${1#*=}"
       shift
+      ;;
+    --tool|--tool=*)
+      echo "Error: --tool is deprecated. Use --agent."
+      exit 1
       ;;
     --prd)
       if [ -z "${2:-}" ]; then
@@ -84,9 +90,9 @@ if [ -n "$PRD_PATH" ] && [ -n "$USER_PROMPT" ]; then
   exit 1
 fi
 
-# Validate tool choice
-if [[ "$TOOL" != "amp" && "$TOOL" != "claude" && "$TOOL" != "codex" && "$TOOL" != "opencode" ]]; then
-  echo "Error: Invalid tool '$TOOL'. Must be 'amp', 'claude', 'codex', or 'opencode'."
+# Validate agent choice
+if [[ "$AGENT" != "amp" && "$AGENT" != "claude" && "$AGENT" != "codex" && "$AGENT" != "opencode" ]]; then
+  echo "Error: Invalid agent '$AGENT'. Must be 'amp', 'claude', 'codex', or 'opencode'."
   exit 1
 fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -196,16 +202,16 @@ if [ ! -f "$PROGRESS_FILE" ]; then
   echo "---" >> "$PROGRESS_FILE"
 fi
 
-echo "Starting Ralph - Tool: $TOOL - Max iterations: $MAX_ITERATIONS"
+echo "Starting Ralph - Agent: $AGENT - Max iterations: $MAX_ITERATIONS"
 
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
   echo "==============================================================="
-  echo "  Ralph Iteration $i of $MAX_ITERATIONS ($TOOL)"
+  echo "  Ralph Iteration $i of $MAX_ITERATIONS ($AGENT)"
   echo "==============================================================="
 
   # Run the selected tool with the ralph prompt
-  case "$TOOL" in
+  case "$AGENT" in
     amp)
       AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/prompt.md")
       OUTPUT=$(printf '%s' "$AGENT_PROMPT" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
