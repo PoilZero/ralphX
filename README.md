@@ -32,6 +32,8 @@ ralphx "Add a search box to the homepage" 3
 
 `--tool` is deprecated and will error. Use `--agent`.
 
+If you run Codex outside a git repo, ralphx will pass `--skip-git-repo-check` automatically.
+
 ## Prerequisites
 
 - One of the following AI coding tools installed and authenticated:
@@ -263,6 +265,8 @@ ralphx "在首页加一个搜索框" 3
 ```
 
 `--tool` 已废弃并会报错，请使用 `--agent`。
+
+如果在非 git 目录运行 Codex，ralphx 会自动附加 `--skip-git-repo-check`。
 
 ## 前置条件
 

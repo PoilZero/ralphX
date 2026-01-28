@@ -1,10 +1,13 @@
 {
   "name": "@poilzero/ralphx",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ralph autonomous agent loop runner",
   "license": "MIT",
   "bin": {
     "ralphx": "bin/ralphx"
+  },
+  "scripts": {
+    "test": "bash tests/cli-agent.sh"
   },
   "files": [
     "bin/ralphx",

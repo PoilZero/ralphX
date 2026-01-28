@@ -21,6 +21,10 @@ escape_sed() {
   printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
 }
 
+is_git_repo() {
+  git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
 # Parse arguments
 AGENT="${RALPHX_AGENT:-amp}"
 MAX_ITERATIONS=10
@@ -224,7 +228,11 @@ for i in $(seq 1 $MAX_ITERATIONS); do
     codex)
       # Codex CLI: use exec for non-interactive runs, allow full auto and write access
       AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/CODEX.md")
-      OUTPUT=$(codex exec --full-auto --sandbox danger-full-access "$AGENT_PROMPT" 2>&1 | tee /dev/stderr) || true
+      CODEX_ARGS=(exec --full-auto --sandbox danger-full-access)
+      if ! is_git_repo; then
+        CODEX_ARGS+=(--skip-git-repo-check)
+      fi
+      OUTPUT=$(codex "${CODEX_ARGS[@]}" "$AGENT_PROMPT" 2>&1 | tee /dev/stderr) || true
       ;;
     opencode)
       # OpenCode CLI: non-interactive prompt mode, hide spinner output
