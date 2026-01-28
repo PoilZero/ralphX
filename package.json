@@ -7,7 +7,7 @@
     "ralphx": "bin/ralphx"
   },
   "scripts": {
-    "test": "bash tests/cli-agent.sh"
+    "test": "bash tests/cli-agent.sh && bash tests/cli-color.sh"
   },
   "files": [
     "bin/ralphx",

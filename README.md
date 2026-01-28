@@ -34,6 +34,22 @@ ralphx "Add a search box to the homepage" 3
 
 If you run Codex outside a git repo, ralphx will pass `--skip-git-repo-check` automatically.
 
+### Output coloring
+
+ralphx colors its own status lines (not the agent output) to make runs easier to monitor. By default, colors are enabled only when stdout is a TTY.
+
+Control color output with:
+- `RALPHX_COLOR=auto|always|never` (default: `auto`)
+- `NO_COLOR` disables color unless `RALPHX_COLOR` is explicitly set
+
+### Autonomy defaults
+
+Ralph runs each CLI in high-autonomy, non-interactive mode:
+- Amp: `--dangerously-allow-all`
+- Claude Code: `--dangerously-skip-permissions`
+- Codex CLI: `--dangerously-bypass-approvals-and-sandbox`
+- OpenCode CLI: non-interactive prompt mode
+
 ## Prerequisites
 
 - One of the following AI coding tools installed and authenticated:
@@ -267,6 +283,22 @@ ralphx "在首页加一个搜索框" 3
 `--tool` 已废弃并会报错，请使用 `--agent`。
 
 如果在非 git 目录运行 Codex，ralphx 会自动附加 `--skip-git-repo-check`。
+
+### 输出配色
+
+ralphx 会对自身的状态信息（不包含 agent 输出）进行配色，默认仅在 stdout 为 TTY 时启用。
+
+配色控制方式：
+- `RALPHX_COLOR=auto|always|never`（默认：`auto`）
+- `NO_COLOR` 会禁用颜色，除非显式设置了 `RALPHX_COLOR`
+
+### 自主性默认值
+
+ralphx 以高自主性、非交互模式运行各工具：
+- Amp：`--dangerously-allow-all`
+- Claude Code：`--dangerously-skip-permissions`
+- Codex CLI：`--dangerously-bypass-approvals-and-sandbox`
+- OpenCode CLI：非交互 prompt 模式
 
 ## 前置条件
 

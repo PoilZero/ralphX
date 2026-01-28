@@ -4,6 +4,72 @@
 
 set -e
 
+COLOR_MODE="${RALPHX_COLOR:-}"
+if [ -z "$COLOR_MODE" ]; then
+  if [ -n "${NO_COLOR:-}" ]; then
+    COLOR_MODE="never"
+  else
+    COLOR_MODE="auto"
+  fi
+fi
+
+case "$COLOR_MODE" in
+  always)
+    COLOR_ENABLED=1
+    ;;
+  never)
+    COLOR_ENABLED=0
+    ;;
+  auto)
+    if [ -t 1 ]; then
+      COLOR_ENABLED=1
+    else
+      COLOR_ENABLED=0
+    fi
+    ;;
+  *)
+    if [ -t 1 ]; then
+      COLOR_ENABLED=1
+    else
+      COLOR_ENABLED=0
+    fi
+    ;;
+esac
+
+color() {
+  local code="$1"
+  if [ "$COLOR_ENABLED" -eq 1 ]; then
+    printf '\033[%sm' "$code"
+  fi
+}
+
+log_plain() {
+  printf '%s\n' "$1"
+}
+
+log_info() {
+  printf '%s[INFO] %s%s\n' "$(color 36)" "$*" "$(color 0)"
+}
+
+log_warn() {
+  printf '%s[WARN] %s%s\n' "$(color 33)" "$*" "$(color 0)"
+}
+
+log_error() {
+  printf '%s[ERROR] %s%s\n' "$(color 31)" "$*" "$(color 0)"
+}
+
+log_success() {
+  printf '%s[OK] %s%s\n' "$(color "32;1")" "$*" "$(color 0)"
+}
+
+log_banner() {
+  local line="==============================================================="
+  printf '%s%s%s\n' "$(color 2)" "$line" "$(color 0)"
+  printf '%s  %s%s\n' "$(color "34;1")" "$*" "$(color 0)"
+  printf '%s%s%s\n' "$(color 2)" "$line" "$(color 0)"
+}
+
 show_usage() {
   cat <<'EOF'
 Usage:
@@ -42,12 +108,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --tool|--tool=*)
-      echo "Error: --tool is deprecated. Use --agent."
+      log_error "Error: --tool is deprecated. Use --agent."
       exit 1
       ;;
     --prd)
       if [ -z "${2:-}" ]; then
-        echo "Error: --prd requires a path."
+        log_error "Error: --prd requires a path."
         exit 1
       fi
       PRD_PATH="$2"
@@ -59,7 +125,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --prompt)
       if [ -z "${2:-}" ]; then
-        echo "Error: --prompt requires text."
+        log_error "Error: --prompt requires text."
         exit 1
       fi
       USER_PROMPT="$2"
@@ -90,13 +156,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -n "$PRD_PATH" ] && [ -n "$USER_PROMPT" ]; then
-  echo "Error: --prd and --prompt cannot be used together."
+  log_error "Error: --prd and --prompt cannot be used together."
   exit 1
 fi
 
 # Validate agent choice
 if [[ "$AGENT" != "amp" && "$AGENT" != "claude" && "$AGENT" != "codex" && "$AGENT" != "opencode" ]]; then
-  echo "Error: Invalid agent '$AGENT'. Must be 'amp', 'claude', 'codex', or 'opencode'."
+  log_error "Error: Invalid agent '$AGENT'. Must be 'amp', 'claude', 'codex', or 'opencode'."
   exit 1
 fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -115,8 +181,8 @@ else
   fi
 
   if [ ! -f "$PRD_FILE" ]; then
-    echo "Error: prd.json not found at $PRD_FILE."
-    echo "Provide --prd /path/to/prd.json or run: ralphx \"your task\""
+    log_error "Error: prd.json not found at $PRD_FILE."
+    log_warn "Provide --prd /path/to/prd.json or run: ralphx \"your task\""
     exit 1
   fi
 
@@ -178,11 +244,11 @@ if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
     FOLDER_NAME=$(echo "$LAST_BRANCH" | sed 's|^ralph/||')
     ARCHIVE_FOLDER="$ARCHIVE_DIR/$DATE-$FOLDER_NAME"
     
-    echo "Archiving previous run: $LAST_BRANCH"
+    log_info "Archiving previous run: $LAST_BRANCH"
     mkdir -p "$ARCHIVE_FOLDER"
     [ -f "$PRD_FILE" ] && cp "$PRD_FILE" "$ARCHIVE_FOLDER/"
     [ -f "$PROGRESS_FILE" ] && cp "$PROGRESS_FILE" "$ARCHIVE_FOLDER/"
-    echo "   Archived to: $ARCHIVE_FOLDER"
+    log_info "Archived to: $ARCHIVE_FOLDER"
     
     # Reset progress file for new run
     echo "# Ralph Progress Log" > "$PROGRESS_FILE"
@@ -206,13 +272,11 @@ if [ ! -f "$PROGRESS_FILE" ]; then
   echo "---" >> "$PROGRESS_FILE"
 fi
 
-echo "Starting Ralph - Agent: $AGENT - Max iterations: $MAX_ITERATIONS"
+log_info "Starting Ralph - Agent: $AGENT - Max iterations: $MAX_ITERATIONS"
 
 for i in $(seq 1 $MAX_ITERATIONS); do
-  echo ""
-  echo "==============================================================="
-  echo "  Ralph Iteration $i of $MAX_ITERATIONS ($AGENT)"
-  echo "==============================================================="
+  log_plain ""
+  log_banner "Ralph Iteration $i of $MAX_ITERATIONS ($AGENT)"
 
   # Run the selected tool with the ralph prompt
   case "$AGENT" in
@@ -226,9 +290,9 @@ for i in $(seq 1 $MAX_ITERATIONS); do
       OUTPUT=$(printf '%s' "$AGENT_PROMPT" | claude --dangerously-skip-permissions --print 2>&1 | tee /dev/stderr) || true
       ;;
     codex)
-      # Codex CLI: use exec for non-interactive runs, allow full auto and write access
+      # Codex CLI: use exec for non-interactive runs, bypass approvals and sandbox
       AGENT_PROMPT=$(render_prompt "$SCRIPT_DIR/CODEX.md")
-      CODEX_ARGS=(exec --full-auto --sandbox danger-full-access)
+      CODEX_ARGS=(exec --dangerously-bypass-approvals-and-sandbox)
       if ! is_git_repo; then
         CODEX_ARGS+=(--skip-git-repo-check)
       fi
@@ -243,17 +307,17 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
-    echo ""
-    echo "Ralph completed all tasks!"
-    echo "Completed at iteration $i of $MAX_ITERATIONS"
+    log_plain ""
+    log_success "Ralph completed all tasks!"
+    log_success "Completed at iteration $i of $MAX_ITERATIONS"
     exit 0
   fi
   
-  echo "Iteration $i complete. Continuing..."
+  log_info "Iteration $i complete. Continuing..."
   sleep 2
 done
 
-echo ""
-echo "Ralph reached max iterations ($MAX_ITERATIONS) without completing all tasks."
-echo "Check $PROGRESS_FILE for status."
+log_plain ""
+log_warn "Ralph reached max iterations ($MAX_ITERATIONS) without completing all tasks."
+log_info "Check $PROGRESS_FILE for status."
 exit 1

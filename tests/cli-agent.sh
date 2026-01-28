@@ -63,6 +63,7 @@ run_case_no_git() {
 # Case 1: --agent selects codex
 case1_dir=$(run_case "agent-flag" bash -c "cd \"$BASE_DIR/agent-flag\" && PATH=\"$STUB_DIR:\$PATH\" RALPHX_TEST_MARKER=\"$BASE_DIR/agent-flag/marker.txt\" RALPHX_TEST_ARGS=\"$BASE_DIR/agent-flag/args.txt\" \"$ROOT_DIR/ralph.sh\" --agent codex \"Create a file AGENT_OK.txt with content AGENT_OK\" 1")
 assert_file_contains "$case1_dir/marker.txt" "codex"
+assert_file_contains "$case1_dir/args.txt" "--dangerously-bypass-approvals-and-sandbox"
 if grep -q -- "--skip-git-repo-check" "$case1_dir/args.txt"; then
   echo "Assertion failed: --skip-git-repo-check should not be used inside git repo" >&2
   exit 1
@@ -71,6 +72,7 @@ fi
 # Case 2: RALPHX_AGENT selects codex
 case2_dir=$(run_case "env-var" bash -c "cd \"$BASE_DIR/env-var\" && PATH=\"$STUB_DIR:\$PATH\" RALPHX_TEST_MARKER=\"$BASE_DIR/env-var/marker.txt\" RALPHX_TEST_ARGS=\"$BASE_DIR/env-var/args.txt\" RALPHX_AGENT=codex \"$ROOT_DIR/ralph.sh\" \"Create a file ENV_OK.txt with content ENV_OK\" 1")
 assert_file_contains "$case2_dir/marker.txt" "codex"
+assert_file_contains "$case2_dir/args.txt" "--dangerously-bypass-approvals-and-sandbox"
 if grep -q -- "--skip-git-repo-check" "$case2_dir/args.txt"; then
   echo "Assertion failed: --skip-git-repo-check should not be used inside git repo" >&2
   exit 1
@@ -83,6 +85,7 @@ assert_file_contains "$case3_dir/marker.txt" "amp"
 # Case 4: non-git codex adds skip check
 case4_dir=$(run_case_no_git "codex-non-git" bash -c "cd \"$BASE_DIR/codex-non-git\" && PATH=\"$STUB_DIR:\$PATH\" RALPHX_TEST_MARKER=\"$BASE_DIR/codex-non-git/marker.txt\" RALPHX_TEST_ARGS=\"$BASE_DIR/codex-non-git/args.txt\" \"$ROOT_DIR/ralph.sh\" --agent codex \"Create a file NON_GIT_OK.txt with content NON_GIT_OK\" 1")
 assert_file_contains "$case4_dir/marker.txt" "codex"
+assert_file_contains "$case4_dir/args.txt" "--dangerously-bypass-approvals-and-sandbox"
 assert_file_contains "$case4_dir/args.txt" "--skip-git-repo-check"
 
 # Case 5: --tool errors out
